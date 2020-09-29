@@ -4,21 +4,24 @@ using System.Collections.Generic;
 using System.Net.Mime;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
-public class tictactoe : MonoBehaviour
+
+public class tictactoe : NetworkBehaviour
 {
-    public GameObject cross, circle;
+    [SyncVar] public GameObject cross, circle;
     public enum Seed
     {
         EMPTY,
         CROSS,
         CIRCLE
     };
-    public Seed turn;
-    public Text TextTurn;
-    public GameObject[] spawns = new GameObject[9];
-    public Seed[] player = new Seed[9];
+    [SyncVar] public Seed turn;
+    [SyncVar] public Text TextTurn;
+    [SyncVar] public GameObject[] spawns = new GameObject[9];
+    [SyncVar] public Seed[] player = new Seed[9];
 
     private void Awake()
     {
@@ -30,18 +33,20 @@ public class tictactoe : MonoBehaviour
         }
     }
 
+    [Command]
     public void SpawnNew(GameObject obj, int id)
     {
         if(turn == Seed.CROSS)
         {
             spawns[id] = Instantiate(cross, obj.transform.position, Quaternion.identity);
+            NetworkServer.Spawn(spawns[id]);
             player[id] = turn;
 
             if (Win(turn))
             {
                 turn = Seed.EMPTY;
                 TextTurn.text = "Cross has Won !!! ";
-            }
+            } 
             else
             {
                 turn = Seed.CIRCLE;
@@ -53,6 +58,7 @@ public class tictactoe : MonoBehaviour
         else if (turn == Seed.CIRCLE)
         {
             spawns[id] = Instantiate(circle, obj.transform.position, Quaternion.identity);
+            NetworkServer.Spawn(spawns[id]);
             player[id] = turn;
             if (Win(turn))
             {
@@ -114,7 +120,7 @@ public class tictactoe : MonoBehaviour
 
         return hasWin;
     }
-
+  
     bool Draw()
     {
         bool crossWin, circleWin, anyEmpty;
